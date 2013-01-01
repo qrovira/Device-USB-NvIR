@@ -11,7 +11,7 @@ use Data::Dumper;
 
 =head1 NAME
 
-Device::USB::NvIR - interface to Nvidia's USB Infrared emitter for 3D Vision
+Device::USB::NvIR - interface to Nvidia 3D vision USB infrared emitter
 
 =head1 VERSION
 
@@ -23,8 +23,8 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-This module interfaces with the 3D Vision usb IR emitter, allowing to load the
-required firmware (see below), and control frequency and switching.
+This module interfaces with the device using L<Device::USB>, and allows to load
+the required firmware (see below), control frequency and switching.
 
     use Device::USB::NvIR;
 
@@ -32,7 +32,6 @@ required firmware (see below), and control frequency and switching.
 
     $foo->swap_eye("right");
     $foo->swap_eye("left");
-
 
 =cut
 
@@ -244,39 +243,46 @@ sub _endpoints {
     return @{ $interface->endpoints // [] };
 }
 
+=head1 TODO
+
+I could already fulfill my need, but for fun, there's other parts of the library
+that could be ported. Someone crazy enough might glue this up with the L<OpenGL>
+modules...
+
 =head1 SAMPLE USB CAPTURE
 
-For the curious.
+This is easy to get with a simple C<modprobe usbmon> and some fiddling around
+/sys/kernel/debug/usb/usbmon/*, but for the curious (like I was)
 
-ffff8801bd5e9240 2162701228 S Co:019:00 s 00 09 0001 0000 0000 0
-ffff8801bd5e9240 2162701446 C Co:019:00 0 0
-ffff8801fdbe3240 2162701833 S Bo:019:02 -115 28 = 01001800 db29ffff 68b5ffff 81dfffff 30282422 0a080504 418ffdff
-ffff8801fdbe3240 2162701971 C Bo:019:02 0 28 >
-ffff8801fdbe3240 2162701998 S Bo:019:02 -115 6 = 011c0200 0200
-ffff8801fdbe3240 2162702097 C Bo:019:02 0 6 >
-ffff8801f70e2480 2162702127 S Bo:019:02 -115 6 = 011e0200 2c01
-ffff8801f70e2480 2162702194 C Bo:019:02 0 6 >
-ffff8801f70e2480 2162702206 S Bo:019:02 -115 5 = 011b0100 07
-ffff8801f70e2480 2162702348 C Bo:019:02 0 5 >
-ffff8801bd5e9000 2162721059 S Bo:019:01 -115 8 = aafe0000 e6a4feff
-ffff8801bd5e9000 2162721201 C Bo:019:01 0 8 >
-ffff8801f70e2a80 2162721237 S Bo:019:01 -115 8 = aaff0000 e6a4feff
-ffff8801f70e2a80 2162721331 C Bo:019:01 0 8 >
-ffff8801f70e2a80 2162721394 S Bo:019:02 -115 4 = 42180300
-ffff8801f70e2a80 2162721444 C Bo:019:02 0 4 >
-ffff8801f70e2a80 2162721501 S Bi:019:04 -115 7 <
-ffff8801f70e2a80 2162921727 C Bi:019:04 -2 0
-ffff8801bd5e9180 2162934303 S Bo:019:01 -115 8 = aafe0000 e6a4feff
-ffff8801bd5e9180 2162934477 C Bo:019:01 0 8 >
-ffff8801f70e2180 2162934535 S Bo:019:01 -115 8 = aaff0000 e6a4feff
-ffff8801f70e2180 2162934587 C Bo:019:01 0 8 >
-ffff8801bd5e9a80 2162960987 S Bo:019:01 -115 8 = aafe0000 e6a4feff
-ffff8801bd5e9a80 2162961075 C Bo:019:01 0 8 >
-ffff8801f70e2180 2162961135 S Bo:019:01 -115 8 = aaff0000 e6a4feff
-ffff8801f70e2180 2162961357 C Bo:019:01 0 8 >
-ffff8801bd5e9840 2162987663 S Bo:019:01 -115 8 = aafe0000 e6a4feff
-ffff8801bd5e9840 2162987700 C Bo:019:01 0 8 >
-ffff8801bd5e9840 2162987721 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+  ffff8801bd5e9240 2162701228 S Co:019:00 s 00 09 0001 0000 0000 0
+  ffff8801bd5e9240 2162701446 C Co:019:00 0 0
+  ffff8801fdbe3240 2162701833 S Bo:019:02 -115 28 = 01001800 db29ffff 68b5ffff 81dfffff 30282422 0a080504 418ffdff
+  ffff8801fdbe3240 2162701971 C Bo:019:02 0 28 >
+  ffff8801fdbe3240 2162701998 S Bo:019:02 -115 6 = 011c0200 0200
+  ffff8801fdbe3240 2162702097 C Bo:019:02 0 6 >
+  ffff8801f70e2480 2162702127 S Bo:019:02 -115 6 = 011e0200 2c01
+  ffff8801f70e2480 2162702194 C Bo:019:02 0 6 >
+  ffff8801f70e2480 2162702206 S Bo:019:02 -115 5 = 011b0100 07
+  ffff8801f70e2480 2162702348 C Bo:019:02 0 5 >
+  ffff8801bd5e9000 2162721059 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+  ffff8801bd5e9000 2162721201 C Bo:019:01 0 8 >
+  ffff8801f70e2a80 2162721237 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+  ffff8801f70e2a80 2162721331 C Bo:019:01 0 8 >
+  ffff8801f70e2a80 2162721394 S Bo:019:02 -115 4 = 42180300
+  ffff8801f70e2a80 2162721444 C Bo:019:02 0 4 >
+  ffff8801f70e2a80 2162721501 S Bi:019:04 -115 7 <
+  ffff8801f70e2a80 2162921727 C Bi:019:04 -2 0
+  ffff8801bd5e9180 2162934303 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+  ffff8801bd5e9180 2162934477 C Bo:019:01 0 8 >
+  ffff8801f70e2180 2162934535 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+  ffff8801f70e2180 2162934587 C Bo:019:01 0 8 >
+  ffff8801bd5e9a80 2162960987 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+  ffff8801bd5e9a80 2162961075 C Bo:019:01 0 8 >
+  ffff8801f70e2180 2162961135 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+  ffff8801f70e2180 2162961357 C Bo:019:01 0 8 >
+  ffff8801bd5e9840 2162987663 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+  ffff8801bd5e9840 2162987700 C Bo:019:01 0 8 >
+  ffff8801bd5e9840 2162987721 S Bo:019:01 -115 8 = aaff0000 e6a4feff
 
 
 =head1 AUTHOR
