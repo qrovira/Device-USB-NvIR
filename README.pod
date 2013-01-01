@@ -1,0 +1,154 @@
+=head1 NAME
+
+Device::USB::NvIR - interface to Nvidia's USB Infrared emitter for 3D Vision
+
+=head1 VERSION
+
+Version 0.01
+
+
+=cut
+
+=head1 SYNOPSIS
+
+This module interfaces with the 3D Vision usb IR emitter, allowing to load the
+required firmware (see below), and control frequency and switching.
+
+    use Device::USB::NvIR;
+
+    my $foo = Device::USB::NvIR->new( rate => 100 );
+
+    $foo->swap_eye("right");
+    $foo->swap_eye("left");
+
+
+
+=cut
+
+=head1 SUBROUTINES/METHODS
+
+=head2 load_firmware($binary_data)
+
+Attempt to load the firmware required by the USB device.
+This is already attempted during initialization.
+
+
+=cut
+
+=head2 set_rate($rate)
+
+Set the controller refresh rate
+
+
+=cut
+
+=head2 set_eye($eye)
+
+Set eye
+
+
+=cut
+
+=head2 swap_eye($eye)
+
+Swap eye (dummy placeholder for sync foolness)
+
+
+=cut
+
+=head1 SAMPLE USB CAPTURE
+
+For the curious.
+
+ffff8801bd5e9240 2162701228 S Co:019:00 s 00 09 0001 0000 0000 0
+ffff8801bd5e9240 2162701446 C Co:019:00 0 0
+ffff8801fdbe3240 2162701833 S Bo:019:02 -115 28 = 01001800 db29ffff 68b5ffff 81dfffff 30282422 0a080504 418ffdff
+ffff8801fdbe3240 2162701971 C Bo:019:02 0 28 >
+ffff8801fdbe3240 2162701998 S Bo:019:02 -115 6 = 011c0200 0200
+ffff8801fdbe3240 2162702097 C Bo:019:02 0 6 >
+ffff8801f70e2480 2162702127 S Bo:019:02 -115 6 = 011e0200 2c01
+ffff8801f70e2480 2162702194 C Bo:019:02 0 6 >
+ffff8801f70e2480 2162702206 S Bo:019:02 -115 5 = 011b0100 07
+ffff8801f70e2480 2162702348 C Bo:019:02 0 5 >
+ffff8801bd5e9000 2162721059 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+ffff8801bd5e9000 2162721201 C Bo:019:01 0 8 >
+ffff8801f70e2a80 2162721237 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+ffff8801f70e2a80 2162721331 C Bo:019:01 0 8 >
+ffff8801f70e2a80 2162721394 S Bo:019:02 -115 4 = 42180300
+ffff8801f70e2a80 2162721444 C Bo:019:02 0 4 >
+ffff8801f70e2a80 2162721501 S Bi:019:04 -115 7 <
+ffff8801f70e2a80 2162921727 C Bi:019:04 -2 0
+ffff8801bd5e9180 2162934303 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+ffff8801bd5e9180 2162934477 C Bo:019:01 0 8 >
+ffff8801f70e2180 2162934535 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+ffff8801f70e2180 2162934587 C Bo:019:01 0 8 >
+ffff8801bd5e9a80 2162960987 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+ffff8801bd5e9a80 2162961075 C Bo:019:01 0 8 >
+ffff8801f70e2180 2162961135 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+ffff8801f70e2180 2162961357 C Bo:019:01 0 8 >
+ffff8801bd5e9840 2162987663 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+ffff8801bd5e9840 2162987700 C Bo:019:01 0 8 >
+ffff8801bd5e9840 2162987721 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+
+
+=head1 AUTHOR
+
+Quim Rovira, C<< <met at cpan.org> >>
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-device-usb-nvir at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Device-USB-NvIR>.  I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Device::USB::NvIR
+
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker (report bugs here)
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Device-USB-NvIR>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Device-USB-NvIR>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Device-USB-NvIR>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Device-USB-NvIR/>
+
+=back
+
+
+=head1 ACKNOWLEDGEMENTS
+
+Based on L<libnvstusb|http://sourceforge.net/projects/libnvstusb>, which is a proper C implementation meant to be used for stereoscopic vision.
+
+All NVIDIA specific material, trademarks, and firmwares in this proof of concept is their property.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2013 Quim Rovira.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See http://dev.perl.org/licenses/ for more information.
+
+
+
+=cut
+

@@ -33,6 +33,7 @@ required firmware (see below), and control frequency and switching.
     $foo->swap_eye("right");
     $foo->swap_eye("left");
 
+
 =cut
 
 sub new {
