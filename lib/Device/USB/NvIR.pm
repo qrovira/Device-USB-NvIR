@@ -6,6 +6,7 @@ use warnings;
 
 use Device::USB;
 use MIME::Base64;
+use Time::HiRes;
 use Data::Dumper;
 
 =head1 NAME
@@ -29,18 +30,58 @@ This module interfaces with the 3D Vision gadget, allowing to load the required 
     my $foo = Device::USB::NvIR->new();
     ...
 
+=head1 USB CAPTURE
+
+ffff8801bd5e9240 2162701228 S Co:019:00 s 00 09 0001 0000 0000 0
+ffff8801bd5e9240 2162701446 C Co:019:00 0 0
+ffff8801fdbe3240 2162701833 S Bo:019:02 -115 28 = 01001800 db29ffff 68b5ffff 81dfffff 30282422 0a080504 418ffdff
+ffff8801fdbe3240 2162701971 C Bo:019:02 0 28 >
+ffff8801fdbe3240 2162701998 S Bo:019:02 -115 6 = 011c0200 0200
+ffff8801fdbe3240 2162702097 C Bo:019:02 0 6 >
+ffff8801f70e2480 2162702127 S Bo:019:02 -115 6 = 011e0200 2c01
+ffff8801f70e2480 2162702194 C Bo:019:02 0 6 >
+ffff8801f70e2480 2162702206 S Bo:019:02 -115 5 = 011b0100 07
+ffff8801f70e2480 2162702348 C Bo:019:02 0 5 >
+ffff8801bd5e9000 2162721059 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+ffff8801bd5e9000 2162721201 C Bo:019:01 0 8 >
+ffff8801f70e2a80 2162721237 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+ffff8801f70e2a80 2162721331 C Bo:019:01 0 8 >
+ffff8801f70e2a80 2162721394 S Bo:019:02 -115 4 = 42180300
+ffff8801f70e2a80 2162721444 C Bo:019:02 0 4 >
+ffff8801f70e2a80 2162721501 S Bi:019:04 -115 7 <
+ffff8801f70e2a80 2162921727 C Bi:019:04 -2 0
+ffff8801bd5e9180 2162934303 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+ffff8801bd5e9180 2162934477 C Bo:019:01 0 8 >
+ffff8801f70e2180 2162934535 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+ffff8801f70e2180 2162934587 C Bo:019:01 0 8 >
+ffff8801bd5e9a80 2162960987 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+ffff8801bd5e9a80 2162961075 C Bo:019:01 0 8 >
+ffff8801f70e2180 2162961135 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+ffff8801f70e2180 2162961357 C Bo:019:01 0 8 >
+ffff8801bd5e9840 2162987663 S Bo:019:01 -115 8 = aafe0000 e6a4feff
+ffff8801bd5e9840 2162987700 C Bo:019:01 0 8 >
+ffff8801bd5e9840 2162987721 S Bo:019:01 -115 8 = aaff0000 e6a4feff
+
+
 =cut
 
 sub new {
     my ($proto,%args) = @_;
-    my $self = { %args };
+    my $self = {
+        rate => 75.024675,
+        eye  => "quad",
+        invert_eyes => 0,
+#        vblank_method => 0,
+#        toggled_3d => 0,
+        %args
+    };
 
     bless $self, ref($proto) || $proto;
 
     $self->{dev} = Device::USB->new->find_device(0x0955, 0x0007)
         or die "cannot find any nvidia usb device";
 
-    unless($self->has_firmware) {
+    unless($self->_endpoints) {
         $self->load_firmware
             or die "cannot load firmware";
     }
@@ -49,24 +90,18 @@ sub new {
     $self->{dev}->claim_interface(0)
         and die "Cannot claim usb interface";
 
+    $self->set_rate( $self->{rate} );
+    $self->set_eye( $self->{eye} );
+
     return $self;
 };
 
 =head1 SUBROUTINES/METHODS
 
-=head2 has_firmware
+=head2 load_firmware($binary_data)
 
-Returns 1 if the device has already loaded firmware
-
-=cut
-
-sub has_firmware {
-    my ($self) = @_;
-
-    return $self->_num_endpoints != 0;
-}
-
-=head2 load_firmware
+Attempt to load the firmware required by the USB device.
+This is already attempted during initialization.
 
 =cut
 
@@ -79,13 +114,13 @@ sub load_firmware {
     say "Total firmware size: ".bytes::length $data;
 
     while( bytes::length($data) ) {
-        my @m = unpack "C4a*", $data;
-        $data = pop @m;
-        my $s = shift(@m) << 8 | shift(@m);
-        my $p = shift(@m) << 8 | shift(@m);
-        @m = unpack "a${s}a*", $data;
-        my $d = shift @m;
-        $data = shift @m;
+        my ($s, $p, $d);
+
+        # Unpack size, position.. can't use n/a since it's the wrong order (?)
+        ($s, $p, $data) = unpack "nna*", $data;
+        # Now fetch the next $s bytes for this firmware module
+        ($d, $data) = unpack "a${s}a*", $data;
+
         say "Processing fw module at pos $p, total of $s / ".bytes::length($d)." bytes, ".bytes::length($data)." bytes left.";
         my $ret = $self->{dev}->control_msg(
             (0x02 << 5), # USB_TYPE_VENDOR as in usb.h, not on Device::USB
@@ -103,29 +138,139 @@ sub load_firmware {
     # reconnect
     $self->{dev}->reset;
 
+    usleep(50000);
+
     $self->{dev} = Device::USB->new->find_device(0x0955, 0x0007)
         or die "cannot find any nvidia usb device";
 
-    return $self->has_firmware;
+    return $self->_endpoints > 0;
+}
+
+=head2 set_rate($rate)
+
+Set the controller refresh rate
+
+=cut
+sub set_rate {
+    my ($self, $rate) = @_;
+
+    die "can't set rate to $rate"
+        unless $rate >= 60 && $rate <= 120;
+
+    $self->{rate} = $rate;
+
+    $self->_command( 2, "write", 0x00,
+        # db29ffff 68b5ffff 81dfffff 30282422 0a080504 418ffdff
+        pack "V3C8V",
+            NVSTUSB_T2_COUNT(4568.50),
+            NVSTUSB_T0_COUNT(4774.25),
+            NVSTUSB_T0_COUNT(2080),
+            0x30, 0x28, 0x24, 0x22, # IR pattern / would it burn with constant 1/1 ?
+            0x0a, 0x08, 0x05, 0x04, # just ?
+            NVSTUSB_T2_COUNT(1000000.0/$rate),
+    );
+
+    # Set 0x1c to 2 (?)
+    $self->_command( 2, "write", 0x1c, pack "v", 2 );
+
+    # Set the timeout
+    $self->_command( 2, "write", 0x1e, pack "v", $rate * 4 );
+
+    # Set 0x1b to 7 (?)
+    $self->_command( 2, "write", 0x1b, pack "C", 7 );
+}
+
+=head2 set_eye($eye)
+
+Set eye
+
+=cut
+sub set_eye {
+    my ($self, $eye) = @_;
+
+    $self->{eye} = $eye;
+
+    if( $eye eq "quad" ) {
+        $self->set_eye("left");
+        $self->set_eye("right");
+    } else {
+        my $eye_id = ( $eye eq "right" ? 1 : 0 ) ^ $self->{invert_eyes} ? 0xff : 0xfe;
+        $self->_command( 1, "set_eye", $eye_id,
+            pack "V",
+                NVSTUSB_T2_COUNT((1e6/$self->{rate})/1.8)
+        );
+    }
+
+}
+
+=head2 swap_eye($eye)
+
+Swap eye (dummy placeholder for sync foolness)
+
+=cut
+sub swap_eye {
+    my ($self, $eye) = @_;
+
+    # dare to integrate with pogl? :P
+    $self->set_eye(
+        $eye // (
+            $self->{eye} eq "right" ? "left" :
+            $self->{eye} eq "left" ? "right" : "quad"
+        )
+    );
 }
 
 
 #
-## privates
+## privates, usb stuffs
 #
 
-sub _num_endpoints {
+sub NVSTUSB_T0_CLOCK() { 48e6 / 12 }
+sub NVSTUSB_T0_COUNT($) { (-($_[0])*(NVSTUSB_T0_CLOCK/1e6)+1) }
+sub NVSTUSB_T0_US($) { (-($_[0]-1)/(NVSTUSB_T0_CLOCK/1e6)) }
+
+sub NVSTUSB_T2_CLOCK() { 48e6 / 4 }
+sub NVSTUSB_T2_COUNT($) { (-($_[0])*(NVSTUSB_T2_CLOCK/1e6)+1) }
+sub NVSTUSB_T2_US($) { (-($_[0]-1)/(NVSTUSB_T2_CLOCK/1e6)) }
+
+# this crap is for debugging
+sub _hexdump {
+    return join '', map { 
+        my $o='';
+        my @h=(0..9,'a'..'z');
+        do { $o=$h[$_%16].$o; $_=int($_/16); } while $_;
+        $o;
+    } unpack 'C*', shift;
+}
+
+sub _command {
+    my ($self, $endpoint, $command, $address, $data ) = @_;
+
+    my $cmd = $command eq "write" ? 1 :
+        $command eq "read"  ? 2 :
+        $command eq "clear" ? 40 :
+        $command eq "set_eye" ? 0xaa :
+        $command eq "x0199" ? 0xbe :
+        die "invalid command $command";
+
+    my $buf = pack "CCv/a", $cmd, $address, $data;
+
+    #say sprintf "[debug] $command to $endpoint: %s", _hexdump($buf);
+
+    return $self->{dev}->bulk_write( $endpoint, $buf, bytes::length($buf), 0 ) >= 0;
+}
+
+
+sub _endpoints {
     my ($self) = @_;
 
     my $conf = ($self->{dev}->configurations->[0])
         or return 0;
 
-    my $interface = ($conf->interfaces->[0][0])
+    my $interface = $conf->interfaces->[0][0]
         or return 0;
 
-    say "We have ".$interface->bNumEndpoints." endpoints";
-
-    return $interface->bNumEndpoints;
+    return @{ $interface->endpoints // [] };
 }
 
 =head1 AUTHOR
@@ -171,6 +316,8 @@ L<http://search.cpan.org/dist/Device-USB-NvIR/>
 =head1 ACKNOWLEDGEMENTS
 
 Based on L<libnvstusb|http://sourceforge.net/projects/libnvstusb>, which is a proper C implementation meant to be used for stereoscopic vision.
+
+All NVIDIA specific material, trademarks, and firmwares in this proof of concept is their property.
 
 
 =head1 LICENSE AND COPYRIGHT
