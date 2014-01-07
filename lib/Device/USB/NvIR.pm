@@ -243,11 +243,29 @@ sub _endpoints {
     return @{ $interface->endpoints // [] };
 }
 
+=head1 WHY???
+
+Yes, interfacing such device from Perl might be stupid, but I wanted to use the
+emitter for the wiimote on the living room computer, regardless of being on 3D
+mode or not, and the syncing part of the tools i found were bound to the display
+
+Refer to the libnvstusb project on which this module was based on for much more
+detail.
+
 =head1 TODO
 
 I could already fulfill my need, but for fun, there's other parts of the library
 that could be ported. Someone crazy enough might glue this up with the L<OpenGL>
 modules...
+
+=head1 CAVEATS
+
+As you can read on Bob Somer's article, Linux will set the default permissions to
+unknown USB devices to read-only, so in order to be able to use this module from
+a non-root user, you'll probably need to add something like the following to your
+udev rules:
+
+  SUBSYSTEM=="usb", ATTR{idVendor}=="0955", ATTR{idProduct}=="0007", MODE="0666"
 
 =head1 SAMPLE USB CAPTURE
 
