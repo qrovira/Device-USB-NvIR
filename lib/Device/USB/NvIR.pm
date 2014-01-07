@@ -303,6 +303,27 @@ This is easy to get with a simple C<modprobe usbmon> and some fiddling around
   ffff8801bd5e9840 2162987721 S Bo:019:01 -115 8 = aaff0000 e6a4feff
 
 
+=head1 REFERENCES
+
+This little piece of crap is based on proper research done by Bob Sanders and the libnvstusb
+folks, where you'll find much better implementation details.
+
+=over
+
+=item L<http://users.csc.calpoly.edu/~zwood/teaching/csc572/final11/rsomers/|Bob Somer's article>
+
+Listing this one first for the sole reason it was the first one I found and started messing with.
+I actually found it fun how he describes his *process* on how he solved the issues he found, rather
+than just the plain solution.
+
+=item L<http://sourceforge.net/projects/libnvstusb/|libnvstusb project on SourceForge>
+
+The real beef. This C library implements (i guess) as much as they could find out about the device.
+The comments on the code are smart and clear.
+
+=back
+
+
 =head1 AUTHOR
 
 Quim Rovira, C<< <met at cpan.org> >>
