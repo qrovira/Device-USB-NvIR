@@ -11,7 +11,7 @@ use Data::Dumper;
 
 =head1 NAME
 
-Device::USB::NvIR - interface to Nvidia 3D vision USB infrared emitter
+Device::USB::NvIR - Interface to Nvidia 3D vision USB infrared emitter
 
 =head1 VERSION
 
@@ -310,13 +310,13 @@ folks, where you'll find much better implementation details.
 
 =over
 
-=item L<http://users.csc.calpoly.edu/~zwood/teaching/csc572/final11/rsomers/|Bob Somer's article>
+=item L<Bob Somer's article|http://users.csc.calpoly.edu/~zwood/teaching/csc572/final11/rsomers/>
 
 Listing this one first for the sole reason it was the first one I found and started messing with.
 I actually found it fun how he describes his *process* on how he solved the issues he found, rather
 than just the plain solution.
 
-=item L<http://sourceforge.net/projects/libnvstusb/|libnvstusb project on SourceForge>
+=item L<libnvstusb project on SourceForge|http://sourceforge.net/projects/libnvstusb/>
 
 The real beef. This C library implements (i guess) as much as they could find out about the device.
 The comments on the code are smart and clear.
@@ -345,21 +345,9 @@ You can also look for information at:
 
 =over 4
 
-=item * RT: CPAN's request tracker (report bugs here)
+=item * Github
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Device-USB-NvIR>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Device-USB-NvIR>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Device-USB-NvIR>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Device-USB-NvIR/>
+L<http://github.com/dist/Device-USB-NvIR/>
 
 =back
 
